@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIMID Shoppable Overlay — Test Report &amp; Dark-Release Plan</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a33; --panel2:#17213f; --line:#26335c;
+    --text:#e8ecf8; --muted:#94a0c4; --dim:#6b77a0;
+    --green:#22c55e; --green2:#16a34a; --amber:#f59e0b; --blue:#3b82f6; --violet:#8b5cf6; --gray:#475174;
+    --dark:#a78bfa;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 10% -10%,#1d2a5c 0%,transparent 60%),radial-gradient(900px 500px at 110% 10%,#2a1a55 0%,transparent 55%),var(--bg);color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif}
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 24px 24px}
+  a{color:#93c5fd;text-decoration:none} a:hover{text-decoration:underline}
+  h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 14px;font-weight:600}
+  .card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:20px}
+  .grid{display:grid;gap:16px}
+  .hero{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:stretch;margin-bottom:16px}
+  .eyebrow{color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+  h1{font-size:30px;line-height:1.15;margin:6px 0 10px;font-weight:750}
+  h1 span{background:linear-gradient(90deg,#93c5fd,#c4b5fd);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{color:#c7cfea;font-size:15px;max-width:640px}
+  .pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .pill{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:#c7cfea;background:#0f1730}
+  .pill.ok{border-color:#1f6f43;color:#86efac;background:#0b2a1a}
+  .verdict{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:10px;background:linear-gradient(135deg,#0f2a1d,#0d1f2e);border:1px solid #1f6f43}
+  .verdict .big{font-size:40px;font-weight:800;color:#86efac;line-height:1}
+  .verdict .sub{color:#b7e4c7}
+  .dark{position:relative;overflow:hidden;border:1px solid #4c3a8a;background:linear-gradient(120deg,#1a1240 0%,#141a3a 60%,#0f1630 100%);margin-bottom:16px}
+  .dark:before{content:"";position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent 0 70%,rgba(167,139,250,.18) 80%,transparent 90%);animation:spin 9s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .dark > *{position:relative}
+  .dark-head{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+  .moon{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e9e3ff,#a78bfa 60%,#5b45b8);box-shadow:0 0 30px rgba(167,139,250,.55)}
+  .dark-title{font-size:22px;font-weight:800;letter-spacing:.02em}
+  .dark-title b{color:var(--dark)}
+  .dark-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .dk{background:rgba(10,12,30,.55);border:1px solid #3a2f73;border-radius:12px;padding:12px}
+  .dk .t{font-weight:700;margin-bottom:4px;color:#ddd6fe}
+  .dk .d{color:#b9b3e0;font-size:13px}
+  .switches{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap;color:#c4bdf0;font-size:13px}
+  .sw{display:inline-flex;align-items:center;gap:8px;background:#0e0b26;border:1px solid #3a2f73;border-radius:999px;padding:6px 12px}
+  .tog{width:34px;height:18px;border-radius:999px;background:#3b3460;position:relative}
+  .tog:after{content:"";position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#8a83b8}
+  .arrow{color:#6d63a8}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+  .kpi{display:flex;gap:14px;align-items:center}
+  .ring{flex:none}
+  .kpi .n{font-size:24px;font-weight:800}
+  .kpi .l{color:var(--muted);font-size:12px}
+  .two{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-bottom:16px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 8px;border-bottom:1px solid #1f2a4d;text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12px}
+  td.c,th.c{text-align:center;white-space:nowrap}
+  .ok{color:#4ade80;font-weight:700}
+  .na{color:var(--dim)}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:6px;background:#0f1730;border:1px solid var(--line);color:#b4c0e6;margin-left:6px}
+  .bars{display:grid;gap:10px}
+  .bar-row{display:grid;grid-template-columns:150px 1fr 54px;gap:10px;align-items:center;font-size:13px}
+  .bar{height:10px;background:#0f1730;border-radius:999px;overflow:hidden;border:1px solid #1f2a4d}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--green2),var(--green));border-radius:999px}
+  .note{color:var(--muted);font-size:12px;margin-top:10px}
+  .vids{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .vid{background:#0e1530;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .vid .frame{aspect-ratio:9/19.5;background:#0e1530;position:relative;overflow:hidden}
+  .vid iframe{position:absolute;left:0;top:0;width:360px;height:780px;border:0;transform-origin:0 0}
+  .vid .meta{padding:10px 12px}
+  .vid .meta b{display:block;margin-bottom:2px}
+  .vid .meta span{color:var(--muted);font-size:12px;display:block}
+  .vid .meta .p{color:#86efac;font-size:12px;margin-top:6px}
+  .rollout{margin-bottom:16px}
+  .track{position:relative;display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:6px}
+  .track:before{content:"";position:absolute;left:4%;right:4%;top:22px;height:4px;background:linear-gradient(90deg,var(--green) 0%,var(--green) 64%,#84cc16 74%,#2b3561 88%);border-radius:4px;opacity:.7}
+  .ph{position:relative;text-align:center}
+  .dot{width:48px;height:48px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:16px;border:3px solid;background:var(--bg)}
+  .dot.done{border-color:var(--green);background:var(--green);color:#052e16;box-shadow:0 0 22px rgba(34,197,94,.55)}
+  .dot.cc{border-color:var(--green);color:#86efac;box-shadow:0 0 18px rgba(34,197,94,.35)}
+  .dot.rv{border-color:#84cc16;color:#d9f99d}
+  .dot.ip{border-color:var(--amber);color:#fde68a;box-shadow:0 0 18px rgba(245,158,11,.35)}
+  .dot.ns{border-color:var(--gray);color:#94a0c4}
+  .ph .name{font-weight:700}
+  .ph .what{color:var(--muted);font-size:12px;min-height:34px}
+  .ph .pb{height:8px;background:#0f1730;border:1px solid #1f2a4d;border-radius:999px;overflow:hidden;margin:8px 6px 6px}
+  .ph .pb i{display:block;height:100%;border-radius:999px}
+  .ph .st{font-size:12px}
+  .ph .tk{font-size:11px;color:var(--dim)}
+  .zone{display:grid;grid-template-columns:4fr 2fr;gap:10px;margin-top:14px}
+  .zone div{border-radius:10px;padding:8px 12px;font-size:12px;text-align:center}
+  .zone .z1{background:rgba(167,139,250,.12);border:1px dashed #7c6bd6;color:#d8d0ff}
+  .zone .z2{background:rgba(34,197,94,.08);border:1px dashed #2f7d52;color:#b7f0cd}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:12px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  footer{margin-top:22px;padding:16px 0 4px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  footer a{color:#a5b4fc}
+  @media (max-width:980px){.hero,.two{grid-template-columns:1fr}.kpis,.vids,.dark-grid{grid-template-columns:repeat(2,1fr)}.track{grid-template-columns:repeat(3,1fr)}.track:before{display:none}.zone{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="hero">
+    <div class="card">
+      <div class="eyebrow">Q4 2026 · Shoppable OLV · <a href="https://vungle.atlassian.net/browse/AEP-1522">AEP-1522</a></div>
+      <h1>SIMID Shoppable Overlay<br><span>Test Report &amp; Dark-Release Plan</span></h1>
+      <div class="lede">Amazon DSP's interactive product carousel now renders on top of our fullscreen video ads in Nemo, and a tap on a product opens the store with Amazon's click URL left untouched. It has been tested in real browsers and on real devices, and it ships switched <b>off</b>.</div>
+      <div class="pills">
+        <span class="pill ok">✓ 42 / 42 NPA runs passed</span>
+        <span class="pill ok">✓ 4 real-device E2E recordings</span>
+        <span class="pill ok">✓ PR CI green</span>
+        <span class="pill">Renderer: Nemo only</span>
+        <span class="pill">Placements: interstitial · rewarded · app-open</span>
+        <span class="pill">No SDK release needed</span>
+      </div>
+    </div>
+    <div class="card verdict">
+      <div class="eyebrow">Verdict</div>
+      <div class="big">Ready to ship dark</div>
+      <div class="sub">Code complete in <a href="https://github.com/Vungle/Monetize/pull/7007">PR #7007</a> (Nautilus + Nemo). All SIMID browser tests passed on Android and iOS with no retries. Nobody sees SIMID until we turn it on for a DSP.</div>
+      <div class="sub" style="color:#94a0c4;font-size:12px">Report date: Oct 12, 2026</div>
+    </div>
+  </section>
+
+  <section class="card dark">
+    <div class="dark-head">
+      <div class="moon"></div>
+      <div>
+        <div class="dark-title"><b>DARK RELEASE</b>: deploying changes nothing for users</div>
+        <div style="color:#b9b3e0;font-size:13px">The code goes to production in an "off" state. Turning SIMID on later is a dashboard setting, not a deploy.</div>
+      </div>
+    </div>
+    <div class="dark-grid">
+      <div class="dk"><div class="t">① Default OFF</div><div class="d">The RTB-connection SIMID toggle defaults to off. With it off, Jaeger never tells the DSP we support SIMID, so no DSP sends a SIMID creative.</div></div>
+      <div class="dk"><div class="t">② Backward compatible</div><div class="d">The new <code>smd</code> field in the ad payload is additive. A renderer that doesn't know it ignores it, and an ad without it is an ordinary video.</div></div>
+      <div class="dk"><div class="t">③ Kill switch, no redeploy</div><div class="d">Jaeger and Nautilus both check the two dashboard toggles. Turning either one off stops SIMID at that scope with no redeploy.</div></div>
+      <div class="dk"><div class="t">④ Fails safe</div><div class="d">If a creative is slow or broken, Nemo removes the overlay and plays a normal clickable video. The video never goes blank. Verified in NPA.</div></div>
+    </div>
+    <div class="switches">
+      <span>SIMID serves only when <b>both</b> are on →</span>
+      <span class="sw"><span class="tog"></span> RTB connection: SIMID</span>
+      <span class="arrow">+</span>
+      <span class="sw"><span class="tog"></span> Publisher placement: allow SIMID</span>
+      <span class="arrow">+</span>
+      <span class="sw">Fullscreen placement · supported SDK (iOS 7.7.3 / 7.7.4 excluded)</span>
+    </div>
+  </section>
+
+  <section class="kpis">
+    <div class="card kpi">
+      <svg class="ring" width="64" height="64" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#1f2a4d" stroke-width="3.2"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="#22c55e" stroke-width="3.2" stroke-dasharray="100 0" transform="rotate(-90 18 18)" stroke-linecap="round"/><text x="18" y="21" text-anchor="middle" font-size="8" font-weight="800" fill="#86efac">100%</text></svg>
+      <div><div class="n">42 / 42</div><div class="l">NPA browser runs passed<br>0 retries · 0 flaky</div></div>
+    </div>
+    <div class="card kpi">
+      <svg class="ring" width="64" height="64" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#1f2a4d" stroke-width="3.2"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="#3b82f6" stroke-width="3.2" stroke-dasharray="100 0" transform="rotate(-90 18 18)"/><text x="18" y="21" text-anchor="middle" font-size="9" font-weight="800" fill="#bfdbfe">22</text></svg>
+      <div><div class="n">22 scenarios</div><div class="l">20 on Android (Chromium)<br>22 on iOS (WebKit)</div></div>
+    </div>
+    <div class="card kpi">
+      <svg class="ring" width="64" height="64" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#1f2a4d" stroke-width="3.2"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="#8b5cf6" stroke-width="3.2" stroke-dasharray="100 0" transform="rotate(-90 18 18)"/><text x="18" y="21" text-anchor="middle" font-size="8" font-weight="800" fill="#ddd6fe">147</text></svg>
+      <div><div class="n">147 unit cases</div><div class="l">84 Nemo · 52 Nautilus Go · 11 pytest<br>green in PR CI</div></div>
+    </div>
+    <div class="card kpi">
+      <svg class="ring" width="64" height="64" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#1f2a4d" stroke-width="3.2"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b" stroke-width="3.2" stroke-dasharray="100 0" transform="rotate(-90 18 18)"/><text x="18" y="21" text-anchor="middle" font-size="9" font-weight="800" fill="#fde68a">4</text></svg>
+      <div><div class="n">4 device E2E</div><div class="l">Real phone recordings of<br>render · rewarded · PiP · pod</div></div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="card">
+      <h2>What we tested: NPA scenario coverage</h2>
+      <table>
+        <thead><tr><th>Scenario group</th><th class="c">Android</th><th class="c">iOS</th><th class="c">Real device</th></tr></thead>
+        <tbody>
+          <tr><td><b>Render &amp; click</b>: carousel shows over the video; one card tap opens the store <i>exactly once</i> (also with fullscreen-click off and on interstitial)</td><td class="c ok">4 / 4</td><td class="c ok">4 / 4</td><td class="c ok">✓</td></tr>
+          <tr><td><b>StoreKit bypass</b>: a card tap opens Amazon's own URL verbatim, not the App Store sheet <span class="tag">iOS only</span></td><td class="c na">n/a</td><td class="c ok">2 / 2</td><td class="c na">–</td></tr>
+          <tr><td><b>Gating</b>: no overlay on MREC or banner, or when either dashboard toggle is off</td><td class="c ok">4 / 4</td><td class="c ok">4 / 4</td><td class="c na">–</td></tr>
+          <tr><td><b>Fail-safe</b>: a broken creative times out and falls back to a clickable plain video</td><td class="c ok">1 / 1</td><td class="c ok">1 / 1</td><td class="c na">–</td></tr>
+          <tr><td><b>UI layering</b>: mute, privacy and close stay tappable; the rewarded skip dialog sits above the overlay</td><td class="c ok">2 / 2</td><td class="c ok">2 / 2</td><td class="c ok">✓</td></tr>
+          <tr><td><b>Feature suppression</b>: persistent CTA and theatre mode are off for SIMID ads (with a no-SIMID control)</td><td class="c ok">2 / 2</td><td class="c ok">2 / 2</td><td class="c na">–</td></tr>
+          <tr><td><b>Lifecycle</b>: the overlay stays shoppable after the video ends and is removed before the endcard</td><td class="c ok">2 / 2</td><td class="c ok">2 / 2</td><td class="c ok">✓</td></tr>
+          <tr><td><b>Ad podding</b>: each pod video gets its own overlay, which is torn down when the pod advances</td><td class="c ok">3 / 3</td><td class="c ok">3 / 3</td><td class="c ok">✓</td></tr>
+          <tr><td><b>Picture-in-picture</b>: PiP takes over a skipped SIMID video (MP4 and HLS) without the overlay following it</td><td class="c ok">2 / 2</td><td class="c ok">2 / 2</td><td class="c ok">✓</td></tr>
+          <tr><td><b>Total</b></td><td class="c ok">20 / 20</td><td class="c ok">22 / 22</td><td class="c ok">4 videos</td></tr>
+        </tbody>
+      </table>
+      <div class="note">NPA runs Nautilus → Nemo in real Chromium and WebKit through the Nautilus previewer. Local run on Oct 12, 2026 against branch <code>feat/AEP-1551-simid</code>; the Nemo NPA workflow on PR #7007 is also green. ViewMaster is out of scope by design (TRD Q5), so its projects skip.</div>
+    </div>
+    <div class="card">
+      <h2>Test layers: all green</h2>
+      <div class="bars">
+        <div class="bar-row"><span>Nemo unit (protocol, session, state machine)</span><div class="bar"><i style="width:100%"></i></div><span class="ok">84 ✓</span></div>
+        <div class="bar-row"><span>Nautilus Go unit (extract, gate, suppress)</span><div class="bar"><i style="width:100%"></i></div><span class="ok">52 ✓</span></div>
+        <div class="bar-row"><span>Nautilus pytest (ADM v7 / state machine)</span><div class="bar"><i style="width:100%"></i></div><span class="ok">11 ✓</span></div>
+        <div class="bar-row"><span>NPA Android · Chromium</span><div class="bar"><i style="width:100%"></i></div><span class="ok">20 ✓</span></div>
+        <div class="bar-row"><span>NPA iOS · WebKit</span><div class="bar"><i style="width:100%"></i></div><span class="ok">22 ✓</span></div>
+        <div class="bar-row"><span>Real-device E2E recordings</span><div class="bar"><i style="width:100%"></i></div><span class="ok">4 ✓</span></div>
+        <div class="bar-row"><span>Stage E2E with real Amazon demand</span><div class="bar"><i style="width:0"></i></div><span class="na">next</span></div>
+      </div>
+      <div class="note" style="margin-top:14px"><b style="color:#c7cfea">Why stage is still open:</b> Amazon DSP doesn't bid into QA, so live bidding and attribution can only be checked in stage. That is tracked in <a href="https://vungle.atlassian.net/browse/AEP-1619">AEP-1619</a> and has to pass before the ramp.</div>
+      <div class="note"><b style="color:#c7cfea">Observability in place:</b> Nemo events <code>simid-presented</code>, <code>simid-click-thru</code>, <code>simid-handshake-timeout</code> and <code>simid-fatal-error</code>, plus Nautilus metrics <code>smb_simid_tokens_total</code> and <code>smb_simid_extraction_failures_total</code>.</div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-bottom:16px">
+    <h2>Real-device E2E recordings</h2>
+    <div class="vids">
+      <div class="vid">
+        <div class="frame"><iframe src="https://drive.google.com/file/d/11fRTGNiqUoOhQM6H8itjWGMtFbX6qG04/preview" allow="autoplay" loading="lazy"></iframe></div>
+        <div class="meta"><b>1 · SIMID rendering</b><span>The product carousel appears over the playing video, and a card tap opens the store.</span><div class="p">✓ NPA: render &amp; click</div><span><a href="https://drive.google.com/file/d/11fRTGNiqUoOhQM6H8itjWGMtFbX6qG04/view?usp=drive_link">Open in Drive ↗</a></span></div>
+      </div>
+      <div class="vid">
+        <div class="frame"><iframe src="https://drive.google.com/file/d/12ri6i5RIvQ6PhI4_gEA6yfy18ZcTXXgR/preview" allow="autoplay" loading="lazy"></iframe></div>
+        <div class="meta"><b>2 · SIMID on rewarded</b><span>On a rewarded placement, the skip dialog sits above the overlay and the overlay stays shoppable after Continue.</span><div class="p">✓ NPA: UI layering</div><span><a href="https://drive.google.com/file/d/12ri6i5RIvQ6PhI4_gEA6yfy18ZcTXXgR/view?usp=drive_link">Open in Drive ↗</a></span></div>
+      </div>
+      <div class="vid">
+        <div class="frame"><iframe src="https://drive.google.com/file/d/1gDSelBwNnbon7JFCcgJ3NfiNFZDO9ac5/preview" allow="autoplay" loading="lazy"></iframe></div>
+        <div class="meta"><b>3 · SIMID with PiP</b><span>After skipping into the endcard, the video keeps playing in picture-in-picture and the overlay is removed.</span><div class="p">✓ NPA: picture-in-picture</div><span><a href="https://drive.google.com/file/d/1gDSelBwNnbon7JFCcgJ3NfiNFZDO9ac5/view?usp=drive_link">Open in Drive ↗</a></span></div>
+      </div>
+      <div class="vid">
+        <div class="frame"><iframe src="https://drive.google.com/file/d/1tRNWGdjSFq5pZEAyncsxssGkAr-Barzb/preview" allow="autoplay" loading="lazy"></iframe></div>
+        <div class="meta"><b>4 · SIMID in ad podding</b><span>Video 1 shows a SIMID CTA and video 2 shows a SIMID product overlay. Each pod video runs its own SIMID session.</span><div class="p">✓ NPA: ad podding</div><span><a href="https://drive.google.com/file/d/1tRNWGdjSFq5pZEAyncsxssGkAr-Barzb/view?usp=drive_link">Open in Drive ↗</a></span></div>
+      </div>
+    </div>
+    <div class="note">The videos play inline for anyone signed in to Google with a Liftoff account.</div>
+  </section>
+
+  <section class="card rollout">
+    <h2>Rollout plan (TRD §8): downstream first, then flip the switch</h2>
+    <div class="track">
+      <div class="ph">
+        <div class="dot done">✓</div>
+        <div class="name">vungo</div>
+        <div class="what">Keep the SIMID creative file when VAST is parsed</div>
+        <div class="pb"><i style="width:100%;background:linear-gradient(90deg,#16a34a,#22c55e)"></i></div>
+        <div class="st" style="color:#86efac;font-weight:700">Released</div>
+        <div class="tk"><a href="https://vungle.atlassian.net/browse/AEP-1617">AEP-1617</a></div>
+      </div>
+      <div class="ph">
+        <div class="dot cc">1</div>
+        <div class="name">Nemo template</div>
+        <div class="what">Overlay runtime (CDN template, no SDK release)</div>
+        <div class="pb"><i style="width:80%;background:linear-gradient(90deg,#16a34a,#22c55e)"></i></div>
+        <div class="st" style="color:#86efac">Code complete · tests green</div>
+        <div class="tk"><a href="https://vungle.atlassian.net/browse/AEP-1551">AEP-1551</a> · <a href="https://vungle.atlassian.net/browse/AEP-1636">AEP-1636</a></div>
+      </div>
+      <div class="ph">
+        <div class="dot cc">2</div>
+        <div class="name">Nautilus</div>
+        <div class="what">Extract <code>smd</code>, placement gate, feature suppression</div>
+        <div class="pb"><i style="width:80%;background:linear-gradient(90deg,#16a34a,#22c55e)"></i></div>
+        <div class="st" style="color:#86efac">Code complete · tests green</div>
+        <div class="tk"><a href="https://github.com/Vungle/Monetize/pull/7007">PR #7007</a></div>
+      </div>
+      <div class="ph">
+        <div class="dot cc">3</div>
+        <div class="name">Jaeger</div>
+        <div class="what">Advertise <code>imp.video.api</code> 8 / 9 / 1007 behind the gates</div>
+        <div class="pb"><i style="width:80%;background:linear-gradient(90deg,#16a34a,#22c55e)"></i></div>
+        <div class="st" style="color:#86efac">Code complete</div>
+        <div class="tk"><a href="https://vungle.atlassian.net/browse/AEP-1618">AEP-1618</a></div>
+      </div>
+      <div class="ph">
+        <div class="dot rv">4</div>
+        <div class="name">Pub dashboard</div>
+        <div class="what">Two SIMID toggles; the RTB toggle defaults OFF (opt-in)</div>
+        <div class="pb"><i style="width:70%;background:linear-gradient(90deg,#65a30d,#84cc16)"></i></div>
+        <div class="st" style="color:#d9f99d">In review</div>
+        <div class="tk"><a href="https://vungle.atlassian.net/browse/PAB-8214">PAB-8214</a></div>
+      </div>
+      <div class="ph">
+        <div class="dot ns">5</div>
+        <div class="name">Ramp</div>
+        <div class="what">Widen the allowlist directly in production</div>
+        <div class="pb"><i style="width:0"></i></div>
+        <div class="st" style="color:#94a0c4">Not started</div>
+        <div class="tk"><a href="https://vungle.atlassian.net/browse/AEP-1619">AEP-1619</a></div>
+      </div>
+    </div>
+    <div class="zone">
+      <div class="z1">🌑 Phases 0–4 deploy <b>dark</b>: no user-visible change. SIMID cannot serve while the RTB toggle is OFF.</div>
+      <div class="z2">🌕 Phase 5 is the only step that exposes SIMID, and it's a toggle flip per DSP and placement.</div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#22c55e;box-shadow:0 0 0 2px #0b1020,0 0 0 3px #22c55e"></i>Released</span>
+      <span><i style="background:transparent;border:2px solid #22c55e;width:10px;height:10px;box-sizing:border-box"></i>Code complete</span>
+      <span><i style="background:#84cc16"></i>In review</span>
+      <span><i style="background:#475174"></i>Not started</span>
+      <span>Bars show Jira status, not a time estimate.</span>
+    </div>
+    <div class="note"><b style="color:#c7cfea">Why this order:</b> once Jaeger advertises SIMID, DSPs start returning SIMID creatives, so the renderer (Nemo) and the payload builder (Nautilus) have to be live first. <b style="color:#c7cfea">Canary bar before each ramp step:</b> handshake success, load time, fatal-error and timeout rate, viewability, click/leave-app, and error rates must stay within tolerance of the non-SIMID baseline on the same inventory.</div>
+  </section>
+
+  <footer>
+    <div>Sources: <a href="https://docs.google.com/document/d/1Rab8z5xW1pIKdMRPQsu96L-GqWqOnQkMjVdeOfXARnI/edit?tab=t.0#heading=h.b7uaigae808">TRD: Shoppable OLV SIMID Integration</a> · <a href="https://github.com/Vungle/Monetize/pull/7007">PR #7007</a> · <a href="https://vungle.atlassian.net/browse/AEP-1522">AEP-1522</a> · NPA <code>video-simid-overlay.spec.ts</code></div>
+    <div><a href="https://forms.gle/EgDegM5QLvBZ8HRa8">Suggest a feature</a> · <a href="https://liftoffio.slack.com/archives/C08UP9HFBFB">Contact</a> · 🚀 Liftoff 2026</div>
+    <div style="width:100%;color:var(--dim)">⚠️ This page was AI-generated from test runs, Jira, and the TRD, and may contain inaccuracies. Check the linked sources before you make decisions.</div>
+  </footer>
+</div>
+<script>
+  // Drive's player has a minimum width and crops narrower iframes, so render it at 360px and scale.
+  function fitVideos(){document.querySelectorAll('.vid .frame').forEach(function(f){f.querySelector('iframe').style.transform='scale('+(f.clientWidth/360)+')';});}
+  window.addEventListener('resize',fitVideos);fitVideos();
+</script>
+</body>
+</html>
